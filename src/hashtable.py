@@ -53,10 +53,23 @@ class HashTable:
         '''
         index = self._hash_mod(key)
 
-        if self.storage[index] is not None:
-            print("Key in use")
+        #If key exists overwrite
+
+        if self.storage[index] is None:
+            self.storage[index] = LinkedPair(key,value)          
+
         else:
-            self.storage[index] = LinkedPair(key,value)
+            item = self.storage[index]
+            while item:
+                if item.key == key:
+                    item.value = value
+                    break
+                elif item.next:
+                    item = item.next
+                else:
+                    item.next = LinkedPair(key, value)
+                    item = False
+                
             
 
     def remove(self, key):
@@ -70,7 +83,17 @@ class HashTable:
         index = self._hash_mod(key)
 
         if self.storage[index] is not None:
-            self.storage[index] = None
+            hasNext = True
+            current_item = self.storage[index]
+
+            while hasNext:
+                if current_item.key == key:
+                    self.storage[index] = None
+                    hasNext = False
+                elif current_item.next is not None:
+                    current_item = current_item.next
+                else:
+                    hasNext = False
         else:
             print("Key not found")
 
@@ -88,17 +111,16 @@ class HashTable:
         if self.storage[index] is None:
             return None
 
-        return self.storage[index].value
-        # if self.storage[index] is None:
-        #     return None
-        
-        # if self.storage[index].key == key:
-        #     return self.storage[index].value
-        # elif self.storage[index].next is not None:
-        #     return self.retrieve(self.storage[index].next)
+        bucket_item = self.storage[index]
+
+        while bucket_item.key:
+            if bucket_item.key == key:
+                return bucket_item.value
+            elif bucket_item.next is not None:
+                bucket_item = bucket_item.next
+            else:
+                return None
             
-
-
     def resize(self):
         '''
         Doubles the capacity of the hash table and
@@ -106,13 +128,21 @@ class HashTable:
 
         Fill this in.
         '''
-        old_storage = self.storage
+        old_storage = self.storage.copy()
         self.capacity = self.capacity * 2
         self.storage = [None] * self.capacity
         
         for item in old_storage:
             if item is not None:
-                self.insert(item.key, item.value)
+                hasNext =  True
+                current_item = item
+                while hasNext:
+                    self.insert(current_item.key, current_item.value)
+
+                    if current_item.next is not None:
+                        current_item = current_item.next
+                    else:
+                        hasNext = False
 
 
 
